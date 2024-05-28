@@ -12,7 +12,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		// Esercizio di gruppo: Ciro Aldorisio, Federica Zaccaro, Gabriel Spina, Marina Perriera, Samuele Lanza.
-		String url="jdbc:mysql://localhost:3306/magazzino";	//stringa di connessione 
+		String url="jdbc:mysql://localhost:3306/Libreria";	//stringa di connessione 
 		Scanner sc=new Scanner(System.in);
 		ArrayList<Movimenti> elencoMovimenti=new ArrayList<Movimenti>();
 		Movimenti m;
@@ -64,7 +64,8 @@ public class Main {
 				ps.setString(5, m.casa_editrice);
 				ps.setInt(6, m.isbn);
 
-				
+				int righeInteressate=ps.executeUpdate();	//eseguo l'istruzione
+				System.out.println("Righe inserite: "+righeInteressate);
 				
 				
 			}
