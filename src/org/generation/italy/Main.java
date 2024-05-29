@@ -3,6 +3,7 @@ package org.generation.italy;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -38,6 +39,9 @@ public class Main {
 			System.out.print("autore: ");
 			m.autore=sc.nextLine();
 			
+			System.out.print("genere: ");
+			m.genere=sc.nextLine();
+			
 			System.out.print("quantita: ");
 			m.quantita=sc.nextInt();
 			sc.nextLine();
@@ -45,12 +49,12 @@ public class Main {
 			System.out.print("casa_editrice: ");
 			m.casa_editrice=sc.nextLine();
 			
-			System.out.print("isbn: ");
+			/*System.out.print("isbn: ");
 			m.isbn=sc.nextInt();
-			sc.nextLine();
+			sc.nextLine();*/
 			
 			
-			String sql="INSERT INTO movimenti(id, titolo, autore, quantita, casa_editrice, isbn) "
+			String sql="INSERT INTO libri(id, titolo, autore, genere, quantita, casa_editrice) "
 					+ "VALUE(?, ?, ?, ?, ?, ?)";		//il ? indica un parametro (segnaposto)
 			
 			System.out.println("Tentativo di esecuzione INSERT");
@@ -60,17 +64,48 @@ public class Main {
 				ps.setInt(1, m.id);		//il primo parametro è l'id. NB
 				ps.setString(2, m.titolo);	
 				ps.setString(3, m.autore);
-				ps.setInt(4, m.quantita);
-				ps.setString(5, m.casa_editrice);
-				ps.setInt(6, m.isbn);
+				ps.setString(4, m.genere);
+				ps.setInt(5, m.quantita);
+				ps.setString(6, m.casa_editrice);
+				//ps.setInt(8, m.isbn);
 
 				int righeInteressate=ps.executeUpdate();	//eseguo l'istruzione
 				System.out.println("Righe inserite: "+righeInteressate);
 				
 				
 			}
+			System.out.println("\n\n\n\n");
+			System.out.println("*** ELENCO MOVIMENTI ***");
+			
+			sql="SELECT * FROM libri"; 			
+			try (PreparedStatement ps=conn.prepareStatement(sql)) {		
+				try (ResultSet rs=ps.executeQuery()) {
+					
+					//scorro tutte le righe
+					while (rs.next()) {		
+						m=new Movimenti();
+						m.id=rs.getInt("id");		//recupero il valore della colonna "id"
+						m.titolo=rs.getString("titolo");
+						m.autore=rs.getString("autore");
+						m.genere=rs.getString("genere");
+						m.quantita=rs.getInt("quantita");
+						m.casa_editrice=rs.getString("casa_editrice");
+						//m.isbn=rs.getInt("isbn");
+
+						elencoMovimenti.add(m);		
 		}
 	}
-
+			}
+			//stampo i movimenti letti dal DB
+ 			for (Movimenti mov:elencoMovimenti)
+ 				System.out.println(mov.toString());
+		}
+		catch (Exception e) {
+			//si è verificato un problema. L'oggetto e (di tipo Exception) contiene informazioni sull'errore verificatosi
+			System.err.println("Si è verificato un errore: "+e.getMessage());
+		}
+		sc.close();
+					
+			}
 }
 
