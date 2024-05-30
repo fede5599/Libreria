@@ -20,7 +20,8 @@ public class Main {
 		Libro m;
 		String risposta, sql;
 		boolean sceltaSbagliata = false, entrataSbagliata = false, uscitaSbagliata = false;
-		boolean visualizzazione = false, inserimento = false, delete = false, ricerca = false, modifica = false, uscita=false;
+		boolean visualizzazione = false, inserimento = false, delete = false, ricerca = false, modifica = false,
+				uscita = false;
 
 		System.out.println("Tentativo di connessione al db...");
 		try (Connection conn = DriverManager.getConnection(url, "root", "")) { // provo a connettermi
@@ -44,6 +45,8 @@ public class Main {
 			 * 
 			 * elencoLibri.add(m); } } } // stampo i movimenti letti dal DB for (Libro mov :
 			 * elencoLibri) System.out.println(mov.toString());
+			 *
+			 * 
 			 */
 
 			// SECONDO PUNTO
@@ -55,7 +58,7 @@ public class Main {
 			do {
 				sceltaSbagliata = false;
 				System.out.println(
-						"Inserisci la tua azione: \nInserimento 1\nVisualizzazione 2\nCancellazione 3\nModifica 4\nUscita 5");
+						"Inserisci la tua azione: \nInserimento 1\nVisualizzazione 2\nCancellazione 3\nModifica 4\nRicerca 5\nUscita 6");
 				risposta = sc.nextLine();
 
 				if (risposta.equals("1")) {
@@ -71,6 +74,9 @@ public class Main {
 					System.out.println("Modifica libro");
 					modifica = true;
 				} else if (risposta.equals("5")) {
+					System.out.println("Ricerca");
+					ricerca = true;
+				} else if (risposta.equals("6")) {
 					System.out.println("Uscita");
 					uscita = true;
 				} else {
@@ -79,7 +85,7 @@ public class Main {
 				}
 			} while (sceltaSbagliata == true);
 
-			// MENÙ A TENDINA SCELTA 1
+			// MENÙ A TENDINA SCELTA 1 - INSERIMENTO
 			if (inserimento == true) {
 				do {
 					System.out.println("*** INSERIMENTO MOVIMENTO ***");
@@ -127,7 +133,7 @@ public class Main {
 				} while (entrataSbagliata == true);
 			}
 
-			// MENÙ A TENDINA SCELTA 2
+			// MENÙ A TENDINA SCELTA 2 - VISUALIZZAZIONE
 			if (visualizzazione == true) {
 				do {
 					System.out.println("\n\n\n\n");
@@ -155,7 +161,7 @@ public class Main {
 				} while (entrataSbagliata == true);
 			}
 
-			// MENÙ A TENDINA SCELTA 3
+			// MENÙ A TENDINA SCELTA 3 - CANCELLAZIONE
 			if (delete == true) {
 				do {
 					System.out.println("Inserisci l'Id da eliminare: ");
@@ -176,7 +182,7 @@ public class Main {
 				} while (entrataSbagliata == true);
 			}
 
-			// MENÙ A TENDINA SCELTA 4
+			// MENÙ A TENDINA SCELTA 4 - MODIFICA
 			if (modifica == true) {
 				do {
 					System.out.println("Inserisci l'Id da MODIFICARE: ");
@@ -207,7 +213,7 @@ public class Main {
 								String nuovaCasaed = sc.nextLine();
 
 								sql = "UPDATE libri SET titolo = ?, autore= ?, genere= ?, quantita= ?, casa_editrice= ? WHERE id=?";
-								
+
 								try (PreparedStatement nuovops = conn.prepareStatement(sql)) {
 									nuovops.setString(1, nuovoTitolo);
 									nuovops.setString(2, nuovoAutore);
@@ -236,14 +242,78 @@ public class Main {
 				} while (entrataSbagliata == true);
 
 			}
+			// MENÙ A TENDINA SCELTA 5 - RICERCA
+			if (ricerca == true) {
+				do {
+					boolean risultatoTrovato = false;
+					do {
+						System.out.println(
+								"Scegli il criterio di ricerca:\n1. Per Titolo\n2. Per Autore\n3. Per Genere\n4. Per Casa Editrice");
+						String criterio = sc.nextLine();
+						String valoreRicerca = "";
 
-			// MENÙ A TENDINA SCELTA 5
+						switch (criterio) {
+						case "1":
+							System.out.print("Inserisci il titolo: ");
+							valoreRicerca = sc.nextLine();
+							sql = "SELECT * FROM libri WHERE titolo LIKE ?";
+							break;
+						case "2":
+							System.out.print("Inserisci l'autore: ");
+							valoreRicerca = sc.nextLine();
+							sql = "SELECT * FROM libri WHERE autore LIKE ?";
+							break;
+						case "3":
+							System.out.print("Inserisci il genere: ");
+							valoreRicerca = sc.nextLine();
+							sql = "SELECT * FROM libri WHERE genere LIKE ?";
+							break;
+						case "4":
+							System.out.print("Inserisci la casa editrice: ");
+							valoreRicerca = sc.nextLine();
+							sql = "SELECT * FROM libri WHERE casa_editrice LIKE ?";
+							break;
+						default:
+							System.out.println("Criterio non valido.");
+							continue;
+						}
+						try (PreparedStatement ps = conn.prepareStatement(sql)) {
+							ps.setString(1, "%" + valoreRicerca + "%");
+							try (ResultSet rs = ps.executeQuery()) {
+								elencoLibri.clear();
+								while (rs.next()) {
+									m = new Libro();
+									m.id = rs.getInt("id");
+									m.titolo = rs.getString("titolo");
+									m.autore = rs.getString("autore");
+									m.genere = rs.getString("genere");
+									m.quantita = rs.getInt("quantita");
+									m.casa_editrice = rs.getString("casa_editrice");
+									elencoLibri.add(m);
+								}
+							}
+						}
+						if (!elencoLibri.isEmpty()) {
+							risultatoTrovato = true;
+							System.out.println("*** RISULTATI RICERCA ***");
+							for (Libro libro : elencoLibri) {
+								System.out.println(libro.toString());
+							}
+						} else {
+							System.out.println("Nessun risultato trovato. Riprova.");
+						}
+					} while (!risultatoTrovato);
+
+				} while (entrataSbagliata == true);
+			}
+
+			// MENÙ A TENDINA SCELTA 6 - USCITA
 			if (uscita == true) {
 				do {
 					break;
-				}while (entrataSbagliata == true);
+				} while (entrataSbagliata == true);
 			}
-		
+
 			// stampo i movimenti letti dal DB
 			for (Libro mov : elencoLibri)
 				System.out.println(mov.toString());
